@@ -1,0 +1,26 @@
+name: Sync Fork
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # 每6小时自动运行一次（UTC时间）
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sync from upstream
+        env:
+          UPSTREAM_REPO: ZhuLinsen/daily_stock_analysis # 改为上游仓库，如：microsoft/vscode
+          PAT: ${{ secrets.PAT }}
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git remote add upstream https://github.com/${UPSTREAM_REPO}.git
+          git fetch upstream
+          git checkout main # 如果你的主分支叫main，如是master则相应修改
+          git merge upstream/main
+          git push https://${GITHUB_ACTOR}:${PAT}@github.com/${GITHUB_REPOSITORY}.git main
